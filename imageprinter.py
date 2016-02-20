@@ -52,12 +52,13 @@ def queue_bitmap(img):
 def render():
     global stopped
     pygame.init()
-    screen = pygame.display.set_mode((576, 1080))
+    real_screen = pygame.display.set_mode((576//2, 2048//2))
+    screen = pygame.Surface((576, 2048))
 
     imgs = []
     yoff = 0
 
-    fnt = pygame.font.SysFont('monospace', 12)
+    fnt = pygame.font.SysFont('monospace', 20)
 
     while not stopped:
         for event in pygame.event.get():
@@ -83,12 +84,16 @@ def render():
             screen.blit(img, (0, voff))
             voff += img.get_height()
             pygame.draw.line(screen, (0, 255, 0), (0, voff-1), (576, voff-1))
+            pygame.draw.line(screen, (0, 255, 0), (0, voff), (576, voff))
 
         pygame.draw.line(screen, (255, 0, 0), (0, pos), (576, pos))
+        pygame.draw.line(screen, (255, 0, 0), (0, pos+1), (576, pos+1))
 
-        pygame.draw.rect(screen, (255, 255, 255), (16, 1000, 544, 64))
+        real_screen.blit(pygame.transform.scale(screen, (576//2, 2048//2)), (0, 0))
+
+        pygame.draw.rect(real_screen, (255, 255, 255), (16, 1000, 544, 64))
         lbl = fnt.render('Queue size: {}'.format(len(imgs)), 1, (0, 0, 0))
-        screen.blit(lbl, (32, 1016))
+        real_screen.blit(lbl, (32, 960))
 
         pygame.display.flip()
 
