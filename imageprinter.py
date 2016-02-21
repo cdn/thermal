@@ -4,6 +4,10 @@ import queue, threading
 import pygame
 import time
 
+ENABLED = False
+
+#ENABLED = True
+
 pos = -1
 def printloop():
     global pos, stopped
@@ -17,15 +21,18 @@ def printloop():
         px = it.load()
         for y in range(it.size[1]):
             pos = y
-            #con.write(b'\x11')
+            if ENABLED:
+                con.write(b'\x11')
             for i in range(72):
                 p = 0
                 for j in range(8):
                     p *= 2
                     if i*8+j < it.size[0] and px[i*8+j,y] == 0:
                         p += 1
-                #con.write(bytes([p]))
-            time.sleep(0.01)
+                if ENABLED:
+                    con.write(bytes([p]))
+            if not ENABLED:
+                time.sleep(0.001)
 
         pos = -1
         qgui.put('REM')

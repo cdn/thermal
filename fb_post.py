@@ -15,7 +15,7 @@ from PIL import Image, ImageDraw, ImageFont
 font_san_big = ImageFont.truetype('/home/lacop/.fonts/RobotoSlab-Bold.ttf', 36)
 font_san_med = ImageFont.truetype('/home/lacop/.fonts/RobotoSlab-Regular.ttf', 32)
 font_san_small = ImageFont.truetype('/home/lacop/.fonts/RobotoSlab-Thin.ttf', 20)
-font_ser = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSerif.ttf', 32)
+font_ser = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf', 32)
 
 def fb_get(url):
     time.sleep(1) # Avoid getting rate-limited
@@ -50,15 +50,15 @@ def render_thing(profilepic, name, desc, datetime=None, text=None, attachpic=Non
     draw = ImageDraw.Draw(img)
 
     pic = Image.open(BytesIO(profilepic))
-    pic.thumbnail((160, 160))
-    img.paste(pic, (8, 8))
+    pic.thumbnail((180, 180))
+    img.paste(pic.convert('1'), (8, 8))
 
-    draw.text((176, 8), name, font=font_san_big)
-    draw.text((176, 50), desc, font=font_san_med)
+    draw.text((196+8, 8), name, font=font_san_big)
+    draw.text((196+8, 50), desc, font=font_san_med)
     if datetime:
-        draw.text((176, 130), datetime[:10] + ' at ' + datetime[11:19], font=font_san_med)
+        draw.text((196+8, 150), datetime[:10] + ' at ' + datetime[11:19], font=font_san_med)
 
-    yoff = 176
+    yoff = 196+16
     if text:
         lines = textwrap.wrap(text, 42)
         for i in range(len(lines)):
@@ -73,12 +73,13 @@ def render_thing(profilepic, name, desc, datetime=None, text=None, attachpic=Non
         yoff += 24
         attpic = Image.open(BytesIO(attachpic))
         attpic.thumbnail((576-32, 576-32))
-        img.paste(attpic, (576//2-attpic.size[0]//2, yoff))
+        img.paste(attpic.convert('1'), (576//2-attpic.size[0]//2, yoff), mask=attpic)
         yoff += attpic.size[1]
 
     yoff += 24
-    draw.line([(64, yoff), (576-64, yoff)], fill=0, width=1)
-    queue_bitmap(img.crop((0, 0, 576, yoff+8)))
+    draw.line([(64, 1), (576-64, 1)], fill=0, width=1)
+    queue_bitmap(img.crop((0, 0, 576, yoff+8)).rotate(180))
+    #queue_bitmap(img.crop((0, 0, 576, yoff+8)))
 
 def render_post(post):
     print('[POST]\t\tFrom: {} ({})'.format(post['from']['name'], post['from']['id']))
@@ -113,9 +114,9 @@ def render_like(user):
     render_thing(pic_bytes, user['name'], 'likes this post.')
 
 
-post = fb_get(fb_url(POST, {'fields': 'from,message,created_time'}))
+#post = fb_get(fb_url(POST, {'fields': 'from,message,created_time'}))
 #post = {'id': '10208075829630848_10208076327923305', 'created_time': '2016-02-20T20:05:20+0000', 'from': {'id': '10208075829630848', 'name': 'Laco Pápay'}, 'message': 'Test post, please ignore. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc ullamcorper vitae odio vel blandit. Maecenas aliquam lectus vitae neque vestibulum luctus. Pellentesque aliquet massa mi, eu ultricies libero auctor sit amet. Donec imperdiet cursus ex sed posuere. Nullam vel hendrerit nunc, et egestas sapien.'}
-render_post(post)
+#render_post(post)
 
 comment_ids = set()
 like_ids = set()
@@ -124,12 +125,13 @@ likes_req = fb_url(POST, {'fields': 'likes.order(chronological).limit('+ str(LIM
 
 
 #render_comment({'id': '10208076327923305_10208076853256438', 'created_time': '2016-02-20T21:15:03+0000', 'message': 'Third comment!', 'from': {'id': '10208075829630848', 'name': 'Laco Pápay'}})
+render_comment({'id': '10208076327923305_10208076957899054', 'created_time': '2016-02-20T21:22:36+0000', 'message': '', 'attachment': {'target': {'id': '150916231762632', 'url': 'https://scontent.xx.fbcdn.net/hphotos-xta1/t39.1997-6/851565_150916235095965_597077506_n.png'}, 'media': {'image': {'height': 496, 'src': 'https://scontent.xx.fbcdn.net/hphotos-xta1/t39.1997-6/851565_150916235095965_597077506_n.png', 'width': 445}}, 'type': 'sticker', 'url': 'https://scontent.xx.fbcdn.net/hphotos-xta1/t39.1997-6/851565_150916235095965_597077506_n.png', 'title': ''}, 'from': {'id': '10208075829630848', 'name': 'Laco Pápay'}})
 #render_comment({'id': '10208076327923305_10208077044941230', 'created_time': '2016-02-20T21:30:39+0000', 'attachment': {'url': 'https://www.facebook.com/photo.php?fbid=10208077043781201&set=p.10208077043781201&type=3', 'type': 'photo', 'target': {'id': '10208077043781201', 'url': 'https://www.facebook.com/photo.php?fbid=10208077043781201&set=p.10208077043781201&type=3'}, 'media': {'image': {'height': 552, 'width': 552, 'src': 'https://scontent.xx.fbcdn.net/hphotos-xpl1/v/t1.0-9/12705793_10208077043781201_8800308936961125052_n.jpg?oh=bcb9c08ed81c83a6f5b2f5c896bd540d&oe=57690073'}}, 'title': ''}, 'message': 'Picture test', 'from': {'id': '10208075829630848', 'name': 'Laco Pápay'}})
 #render_comment({'id': '10208076327923305_10208077072501919', 'created_time': '2016-02-20T21:33:03+0000', 'attachment': {'url': 'https://scontent.xx.fbcdn.net/hphotos-xpa1/t39.1997-6/10734316_1601168500115068_914428519_n.png', 'type': 'sticker', 'target': {'id': '1601168493448402', 'url': 'https://scontent.xx.fbcdn.net/hphotos-xpa1/t39.1997-6/10734316_1601168500115068_914428519_n.png'}, 'media': {'image': {'height': 240, 'width': 240, 'src': 'https://scontent.xx.fbcdn.net/hphotos-xpa1/t39.1997-6/10734316_1601168500115068_914428519_n.png'}}, 'title': ''}, 'message': 'Same sticker now', 'from': {'id': '10208075829630848', 'name': 'Laco Pápay'}})
 #render_like({'id': '10208075829630848', 'name': 'Laco Pápay'})
 
-while True:
-#while False:
+#while True:
+while False:
     # Fetch comments until pagination stops
     while True:
         comments = fb_get(comments_req)
